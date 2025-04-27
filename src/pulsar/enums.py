@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Optional, Union
 from typing_extensions import Literal
 
 
@@ -41,13 +41,33 @@ class PulsarStageResult:
     status: PulsarStageStatus
     result: Any
     error: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[dict[str, Any]] = None
     timestamp: Optional[str] = None
     duration: Optional[float] = None
-    logs: Optional[List[str]] = None
-    metrics: Optional[Dict[str, Any]] = None
-    subscriptions: Optional[List[str]] = None
-    consumers: Optional[List[str]] = None
-    producers: Optional[List[str]] = None
-    topics: Optional[List[str]] = None
-    parameters: Optional[Dict[str, Any]] = None
+    logs: Optional[list[str]] = None
+    metrics: Optional[dict[str, Any]] = None
+    subscriptions: Optional[list[str]] = None
+    consumers: Optional[list[str]] = None
+    producers: Optional[list[str]] = None
+    topics: Optional[list[str]] = None
+    parameters: Optional[dict[str, Any]] = None
+
+@dataclass
+class StageMetadata:
+    """
+    Dataclass for stage metadata.
+    """
+    name: str
+    module: str
+    description: str
+    type: PulsarStageType
+    status: PulsarStageStatus
+    dependencies: list[str]
+    optional: bool = False
+    parameters: Optional[dict[str, Any]] = None
+    version: str = "0.0.0"
+    author: str = "Unknown"
+    additional_info: Optional[dict[str, Any]] = None
+    tags: Optional[list[str]] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
