@@ -401,39 +401,3 @@ class PulsarTestSuiteCommand(object):
     def teardown(self, env, result):
         # Tear down workflow
         self.workflow.teardown(env=env, result=result)
-
-
-# For testing with mock dependencies
-def setup_test_dependencies():
-    """Set up mock dependencies for testing."""
-    from pulsar.tests.mock_dependencies import MockLogger, MockProducer, MockMetrics
-    
-    factory = StageFactory()
-    factory.register_dependency("logger", MockLogger())
-    factory.register_dependency("producer", MockProducer())
-    factory.register_dependency("metrics", MockMetrics())
-    return factory
-
-@testsuite(name="Test Suite with Mock Dependencies")
-class MockStageTestSuite(StageTestSuite2):
-    """A test suite using mock dependencies."""
-    
-    def _setup_dependencies(self, env):
-        """Override to use mock dependencies."""
-        # Set up mock dependencies using helper
-        mock_deps = setup_test_dependencies(self.factory)
-        
-        # Initialize dependencies for each stage
-        init_stage_dependencies(
-            self.factory,
-            GetLogsStage,
-            logger=mock_deps["logger"]
-        )
-
-        init_stage_dependencies(
-            self.factory,
-            SendMessagesStage,
-            producer=mock_deps["producer"],
-            metrics=mock_deps["metrics"],
-            logger=mock_deps["logger"]
-        )

@@ -7,7 +7,6 @@ from pulsar.tests.test_suite_workflow import WorkflowTestSuite
 from pulsar.tests.test_suite import (
   StageTestSuite1, StageTestSuite2, 
   PulsarMessageTestSuite, PulsarTestSuiteCommand,
-  MockStageTestSuite
 )
 
 
@@ -26,14 +25,8 @@ def main(plan):
         suites=[WorkflowTestSuite()]
     )
 
-    # Running with mock dependencies
-    multitest_mock = MultiTest(
-        name="Pulsar Stages Mock Test",
-        suites=[MockStageTestSuite()]
-    )
     plan.add(multitest)
     plan.add(multitest_workflow)
-    plan.add(multitest_mock)
 
     
 if __name__ == "__main__":

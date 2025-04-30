@@ -114,7 +114,7 @@ class MyStage(BaseStage):
         logger = self.get_deps()["logger"]
         metrics = self.get_deps()["metrics"]
         
-        params = context.get("params", {})
+        params = context.get("testcase_params", context)
         value = params.get("value", "default")
         
         logger.info(f"Processing value: {value}")
@@ -169,9 +169,9 @@ class MyStageTestSuite:
     def test_my_stage(self, env, result, value):
         """Test stage with different parameters"""
         context = {
-            "params": {"value": value},
             "env": env,
             "result": result
+            "value": value
         }
         
         workflow_result = self.workflow.execute(context)
