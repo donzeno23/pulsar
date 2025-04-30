@@ -18,7 +18,7 @@ A high-performance testing and workflow automation toolkit built with Python, de
 - Flexible configuration
 
 ### 📋 Table of Contents
-- [Installation](#installation)
+- [Installation](#-installation)
 - [Quick Start](#-quick-start)
 - [Architecture](#-architecture)
 - [Creating New Stages](#-creating-new-stages)
