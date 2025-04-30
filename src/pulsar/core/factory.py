@@ -1,4 +1,4 @@
-# pulsar/stages/factory.py
+# pulsar/core/factory.py
 from typing import Type, Any
 
 from rich import print as rprint

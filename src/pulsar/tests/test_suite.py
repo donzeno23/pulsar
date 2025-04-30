@@ -3,7 +3,7 @@ from rich import print as rprint
 
 from testplan.testing.multitest import testsuite, testcase
 
-from pulsar.stages.factory import StageFactory, setup_stages
+from pulsar.core.factory import StageFactory, setup_stages
 from pulsar.core.dependencies import Logger, Producer, Metrics
 from pulsar.core.observer import LoggingObserver
 # from pulsar.core.composite import CompositeStage
