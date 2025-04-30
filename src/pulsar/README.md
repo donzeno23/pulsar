@@ -18,6 +18,18 @@ A high-performance testing and workflow automation toolkit built with Python, de
 - Flexible configuration
 
 ### 📋 Table of Contents
+- [Installation](#installation)
+- [Quick Start](#-quick-start)
+- [Architecture](#-architecture)
+- [Creating New Stages](#-creating-new-stages)
+- [Writing Test Suites](#-writing-test-suites)
+- [Managing Dependencies](#-managing-dependencies)
+- [Best Practices](#-best-practices)
+- [API Reference](#-api-reference)
+
+### 🔧 Installation
+
+### 📋 Table of Contents
 - Installation
 
 - Quick Start
@@ -34,7 +46,7 @@ A high-performance testing and workflow automation toolkit built with Python, de
 
 - API Reference
 
-#### 🔧 Installation
+### 🔧 Installation
 ##### Prerequisites
 - Python 3.10+
 
