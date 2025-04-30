@@ -5,8 +5,28 @@ from rich import print as rprint
 
 from pulsar.stages.base_stage import BaseStage
 from pulsar.core.dependencies import Producer, Metrics, Logger
-from pulsar.exceptions import PulsarStageInvalidParameterError
+from pulsar.core.exceptions import PulsarStageInvalidParameterError
 
+
+# TODO: move to helpers?
+def check_nested_key(dictionary, key):
+    """
+    Check if a key exists in a nested dictionary structure
+    :param dictionary: Dictionary to check
+    :param key: Key to look for
+    :return: True if key exists, False otherwise
+    """
+    # Check if key exists in top level
+    if key in dictionary:
+        return True
+        
+    # Check nested dictionaries
+    for value in dictionary.values():
+        if isinstance(value, dict):
+            if check_nested_key(value, key):
+                return True
+                
+    return False 
 class SendMessagesStage(BaseStage):
     name = "send_messages"
     dependencies = ["producer", "metrics", "logger"]  # Required dependencies
@@ -89,73 +109,74 @@ class SendMessagesStage(BaseStage):
             raise RuntimeError(error_msg)
 
     @classmethod
-    def run(cls, 
-            params: Optional[dict[str, Any]] = None, 
-            env: Optional[dict[str, Any]] = None, 
-            result: Optional[Any] = None) -> None:
+    def run(cls, context: dict[str, Any]) -> Any:
         """
         Run the send_messages stage.
-
-        :param params: Parameters for the stage.
-        :param env: Environment for the stage.
-        :param result: Result object for logging.
+        :param context: Context for the stage execution.
+        :return: Result of the stage execution.
         """
-        super().run(params, env, result)  # Call base class run for common logging
+        ## super().run(context)  # Call base class run for common logging
 
         if not cls.is_available():
-            # TODO: add custom exception
+            rprint(f"[bold red]Cannot run {cls.name} - dependencies not met[/bold red]")
             raise RuntimeError(f"Required stage {cls.name} missing dependencies")
 
         if not cls._producer_connected:
-            # TODO: add custom exception
+            rprint(f"[bold red]Cannot run {cls.name} - producer not connected[/bold red]")
             raise RuntimeError(f"Producer not connected in {cls.name} stage")
 
-        logger = cls.get_deps()["logger"]
         producer = cls.get_deps()["producer"]
+        logger = cls.get_deps()["logger"]
         metrics = cls.get_deps()["metrics"]
+
+        result = context.get("result", None)
 
         if logger:
             logger.info(f"Running {cls.name} stage")
 
         # Validate parameters
+        params = context.get("testcase_params", context) # use context if testcase_params not found
         if not params:
             rprint("[bold red]No parameters provided for the stage.[/bold red]")
             raise PulsarStageInvalidParameterError(stage_name=cls.name, parameter=params, message="No params were provided for the stage.")
-        
-        if "num_messages" not in params:
-            rprint("[bold red]No message provided for the stage.[/bold red]")
-            # return False
-            raise PulsarStageInvalidParameterError(stage_name=cls.name, parameter=params, message="No message param provided for the stage.")
-        
-        if "duration" not in params:
+
+        found_num_messages = check_nested_key(params, "num_messages")
+        num_messages = params.get("num_messages")
+        if not num_messages: # or if "num_messages" not in params:
+            rprint("[bold red]No num_messages provided for the stage.[/bold red]")
+            raise PulsarStageInvalidParameterError(stage_name=cls.name, parameter=params, message="No num_messages param provided for the stage.")
+
+        duration = params.get("duration")
+        if not duration:
             rprint("[bold red]No duration provided for the stage.[/bold red]")
             raise PulsarStageInvalidParameterError(stage_name=cls.name, parameter=params, message="No duration param provided for the stage.")
 
-        num_messages = params['num_messages']
-        logger.info(f"Sending {num_messages} messages")
+        logger.info(f"Sending: '{num_messages}' messages for {duration} seconds")
 
         # Use the injected dependencies
         try:
+            rprint(f"[bold blue]Running stage:[/bold blue] [yellow]{cls.name}[/yellow]")
+            if result:
+                result.log(f"Sending {num_messages} messages")
             for i in range(num_messages):
                 message = f"Test message {i}"
                 producer.send_message(message)
                 metrics.record_send(value=1.0, tags={"stage": cls.name})
-                
+
+            rprint(f"[bold green]Successfully sent {num_messages} messages[/bold green]")
             if result:
                 result.log(f"Successfully sent {num_messages} messages")
-                
-            rprint(f"[bold green]Successfully sent {num_messages} messages[/bold green]")
-            
+
+            return {"messages_sent": num_messages}
+
         except Exception as e:
             error_msg = f"Error sending messages in {cls.name}: {str(e)}"
             logger.error(error_msg)
-            if result:
-                result.log(error_msg)
-            raise RuntimeError(error_msg)
+            raise RuntimeError(error_msg) 
 
     @classmethod
     def teardown(cls, 
-                params: Optional[dict[str, Any]] = None, 
+                # params: Optional[dict[str, Any]] = None, 
                 env: Optional[dict[str, Any]] = None, 
                 result: Optional[Any] = None) -> None:
         """
@@ -199,6 +220,16 @@ class SendMessagesStage(BaseStage):
             if not cls.optional:
                 raise RuntimeError(error_msg)
 
+    def _cleanup(self, env: Optional[dict[str, Any]] = None, result: Optional[Any] = None) -> None:
+        """Clean up any resources used by the send_messages stage"""
+        producer = self.get_deps()["producer"]
+        logger = self.get_deps()["logger"]
+
+        if result:
+            result.log("Cleaning up send_messages stage resources")
+        
+        logger.info("Cleaning up send_messages stage resources")
+        producer.close()  # Close producer connection
 
 # Create module-level functions that use the class methods
 def init_dependencies(**dependencies):

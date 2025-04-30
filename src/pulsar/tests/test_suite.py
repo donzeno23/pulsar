@@ -5,16 +5,20 @@ from testplan.testing.multitest import testsuite, testcase
 
 from pulsar.stages.factory import StageFactory, setup_stages
 from pulsar.core.dependencies import Logger, Producer, Metrics
+from pulsar.core.observer import LoggingObserver
+# from pulsar.core.composite import CompositeStage
+from pulsar.core.builder import WorkflowBuilder
+from pulsar.core.models import StageStatus
 from pulsar.stages.get_logs import GetLogsStage
 from pulsar.stages.send_messages import SendMessagesStage
-from pulsar.utils.helpers import print_stages, init_stage_dependencies, setup_test_dependencies
+from pulsar.utils.helpers import print_stages, init_stage_dependencies, setup_test_dependencies, create_context
 
 from pulsar.stages import get_logs, send_messages
 
 
 @testsuite(name="Pulsar Stage Test Suite Using Directly")
 class StageTestSuite1(object):
-    
+
     def setup(self, env, result):
         GetLogsStage.set_dependencies(logger=Logger())
         SendMessagesStage.set_dependencies(
@@ -32,8 +36,8 @@ class StageTestSuite1(object):
         print_stages(self.stages)
         # Execute the setup method for each stage
         for stage in self.stages:
-            rprint(f"[bold blue]Running stage:[/bold blue] [yellow]{stage.name}[/yellow]")
-            result.log(f"Running stage: {stage.name}")
+            rprint(f"[bold blue]Running setup for stage:[/bold blue] [yellow]{stage.name}[/yellow]")
+            result.log(f"Running setup for stage: {stage.name}")
             # Call the setup method of each stage
             stage.setup(env=env, result=result)
 
@@ -42,14 +46,20 @@ class StageTestSuite1(object):
     
 
     @testcase(parameters=[
-        {"log_type": "snowflake", "limit": 20},
-        {"log_type": "mongodb", "limit": 10},
+        {"num_messages": 100, "duration": 10, "log_type": "snowflake", "limit": 20},
+        {"num_messages": 200, "duration": 20, "log_type": "mongodb", "limit": 10},
     ])
-    def run(self, env, result, log_type, limit):
+    def run(self, env, result, num_messages, duration, log_type, limit):
         """Test the get_logs stage with different parameters."""
-        testcase_params={"log_type": log_type, "limit": limit}
-        rprint(f"[bold blue]Using parameters: {testcase_params}[/bold blue]")
 
+        context = create_context(
+            env=env,
+            result=result,
+            num_messages=num_messages,
+            duration=duration,
+            log_type=log_type,
+            limit=limit,                
+        )
         # Find and run get_logs stage
         get_logs_stage = next(
             (stage for stage in self.stages if stage.name == "get_logs"),
@@ -58,7 +68,8 @@ class StageTestSuite1(object):
         if get_logs_stage:
             rprint(f"[bold blue]Running stage:[/bold blue] [yellow]{get_logs_stage.name}[/yellow]")
             result.log(f"Running stage: {get_logs_stage.name}")
-            get_logs_stage.run(params=testcase_params, env=env, result=result)
+
+            get_logs_stage.run(context=context)
             rprint(f"[bold green]Stage {get_logs_stage.name} completed successfully![/bold green]")
             result.log(f"Stage {get_logs_stage.name} completed successfully!")
         
@@ -68,11 +79,13 @@ class StageTestSuite1(object):
             None
         )
         if send_messages_stage:
-            send_messages_params = {"num_messages": 10, "duration": 5}
-            rprint(f"[bold blue]Using parameters: {send_messages_params}[/bold blue]")
             rprint(f"[bold blue]Running stage:[/bold blue] [yellow]{send_messages_stage.name}[/yellow]")
             result.log(f"Running stage: {send_messages_stage.name}")
-            send_messages_stage.run(params=send_messages_params, env=env, result=result)
+
+            rprint(f"[bold blue]Using parameters: {context}[/bold blue]")
+            result.log(f"Using parameters: {context}")
+
+            send_messages_stage.run(context=context)
             rprint(f"[bold green]Stage {send_messages_stage.name} completed successfully![/bold green]")
             result.log(f"Stage {send_messages_stage.name} completed successfully!")
     
@@ -192,9 +205,12 @@ class StageTestSuite2(object):
                 
             rprint(f"[bold blue]Running stage:[/bold blue] [yellow]{stage.name}[/yellow]")
             stage.run(
-                params={"num_messages": num_messages, "duration": duration},
-                env=env,
-                result=result
+                context=create_context(
+                    env=env,
+                    result=result,
+                    num_messages=num_messages,
+                    duration=duration
+                )
             )
             
         rprint(f"[bold green]Sent {num_messages} messages successfully![/bold green]")
@@ -209,11 +225,18 @@ class StageTestSuite2(object):
             if stage.name == "get_logs":
                 params = {"log_type": "application", "limit": 100}
                 rprint(f"[bold blue]Using parameters: {params}[/bold blue]")
-                stage.run(params=params, env=env, result=result)
-            else:
-                rprint(f"[bold blue]No parameters provided for stage: {stage.name}[/bold blue]")
-                stage.run(env=env, result=result)
-            stage.run(env=env, result=result)
+                stage.run(context=create_context(
+                    env=env,
+                    result=result,
+                    params=params
+                ))
+            else:                
+                stage.run(context=create_context(
+                    env=env,
+                    result=result,
+                ))
+            rprint(f"[bold green]Stage {stage.name} completed successfully![/bold green]")
+            
 
     def teardown(self, env, result):
         """Tear down all stages."""
@@ -270,13 +293,14 @@ class PulsarMessageTestSuite(object):
 
         for stage in self.stages:
             rprint(f"[bold blue]Running stage:[/bold blue] [yellow]{stage.name}[/yellow]")
-            stage.run(
-                params={"num_messages": num_messages, "duration": duration},
+            stage.run(context=create_context(
                 env=env,
-                result=result
-            )
+                result=result,
+                num_messages=num_messages,
+                duration=duration
+            ))
 
-        rprint(f"[bold green]Sent {num_messages} messages successfully![/bold green]")
+        rprint(f"[bold green]Sent {num_messages} messages for a duration of {duration} seconds successfully![/bold green]")
 
     def teardown(self, env, result):
         """Tear down all stages."""
@@ -291,6 +315,92 @@ class PulsarMessageTestSuite(object):
                 result.log(f"Error tearing down stage {stage.name}: {str(e)}")
                 if not stage.optional:
                     raise
+
+@testsuite(name="Test Suite for Pulsar Stage Using Command")
+class PulsarTestSuiteCommand(object):
+    def setup(self, env, result):
+        # Create observers
+        logging_observer = LoggingObserver(Logger())
+
+        # Create composite stage
+        # self.workflow = CompositeStage(
+        #     stages=[
+        #         GetLogsStage(),
+        #         SendMessagesStage()
+        #     ],
+        #     observers=[logging_observer]
+        # )
+        # self.workflow = CompositeStage("test_workflow")
+
+        # Create workflow using builder
+        workflow_builder = WorkflowBuilder("test_workflow")
+        
+        # Create and configure stages
+        get_logs = GetLogsStage()
+        send_messages = SendMessagesStage()
+        
+        # Add observers
+        get_logs.add_observer(logging_observer)
+        send_messages.add_observer(logging_observer)
+
+        # Set up dependencies
+        get_logs.set_dependencies(logger=Logger())
+        send_messages.set_dependencies(
+            producer=Producer(),
+            metrics=Metrics(),
+            logger=Logger()
+        )
+        # GetLogsStage.set_dependencies(logger=Logger())
+        # SendMessagesStage.set_dependencies(
+        #     producer=Producer(),
+        #     metrics=Metrics(),
+        #     logger=Logger()
+        # )
+        
+        # # Add stages to workflow
+        # self.workflow.add_substage(get_logs)
+        # self.workflow.add_substage(send_messages)
+        # # Set up dependencies between stages
+        # send_messages.add_dependency(get_logs)
+
+        # Build workflow with dependencies
+        self.workflow = (
+            workflow_builder
+            .add_stage(get_logs)
+            .add_stage(send_messages, depends_on=[get_logs.name]) # depends_on=["get_logs"]
+            .build()
+        )
+        self.workflow.setup(env=env, result=result)
+
+    @testcase(parameters=[
+        {"num_messages": 500, "duration": 60, "log_type": "application", "limit": 100},
+        {"num_messages": 250, "duration": 120, "log_type": "security", "limit": 200}
+    ])
+    def test_workflow(self, env, result, num_messages, duration, log_type, limit):
+        testcase_params = {"log_type": log_type, "limit": limit }
+        rprint(f"[bold blue]Using parameters: {testcase_params}[/bold blue]")
+        context = create_context(
+            env=env,
+            result=result,
+            num_messages=num_messages,
+            duration=duration,
+            log_type=log_type,
+            limit=limit,
+        )
+        rprint(f"[bold blue]Running workflow with parameters: {context}[/bold blue]")
+        result.log(f"Running workflow with parameters: {context}")
+        
+        workflow_result = self.workflow.execute(context)
+        
+        if workflow_result.status == StageStatus.FAILED:
+            result.log(f"Workflow failed: {workflow_result.error}")
+            raise workflow_result.error
+        
+        result.log("Workflow completed successfully")
+
+    def teardown(self, env, result):
+        # Tear down workflow
+        self.workflow.teardown(env=env, result=result)
 
 
 # For testing with mock dependencies

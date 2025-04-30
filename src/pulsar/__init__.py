@@ -42,4 +42,4 @@ from .__version__ import (
     __copyright_year__,
     __cake__,
 )
-from .utils import loader
+from .utils import helpers

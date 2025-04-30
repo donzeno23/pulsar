@@ -71,3 +71,18 @@ class StageMetadata:
     tags: Optional[list[str]] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
+
+class StageStatus(Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    SKIPPED = "skipped"
+
+@dataclass
+class StageResult:
+    stage_name: str
+    status: StageStatus
+    result: Any = None
+    error: Optional[Exception] = None
+    metadata: dict[str, Any] = None

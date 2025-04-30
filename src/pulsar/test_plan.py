@@ -3,24 +3,27 @@ import sys
 from testplan import test_plan
 from testplan.testing.multitest import MultiTest
 
-from pulsar.tests.test_suite import StageTestSuite1, StageTestSuite2, PulsarMessageTestSuite, MockStageTestSuite
+from pulsar.tests.test_suite_workflow import WorkflowTestSuite
+from pulsar.tests.test_suite import (
+  StageTestSuite1, StageTestSuite2, 
+  PulsarMessageTestSuite, PulsarTestSuiteCommand,
+  MockStageTestSuite
+)
 
 
 @test_plan(name="Pulsar Test Plan")
 def main(plan):
-    # test = MultiTest(
-    #         name="Pulsar MultiTest",
-    #         suites=[
-    #             StageTestSuite(),
-    #             # StageTestSuite2(),
-    #         ],
-    #     )
-    # plan.add(test)
 
     # Running with real dependencies
     multitest = MultiTest(
         name="Pulsar Stages Test",
-        suites=[StageTestSuite1(), StageTestSuite2(), PulsarMessageTestSuite()]
+        suites=[StageTestSuite1(), StageTestSuite2(), PulsarMessageTestSuite(), PulsarTestSuiteCommand()]
+    )
+
+    # Running with workflow builder
+    multitest_workflow = MultiTest(
+        name="Pulsar Stages Workflow Test",
+        suites=[WorkflowTestSuite()]
     )
 
     # Running with mock dependencies
@@ -29,6 +32,7 @@ def main(plan):
         suites=[MockStageTestSuite()]
     )
     plan.add(multitest)
+    plan.add(multitest_workflow)
     plan.add(multitest_mock)
 
     

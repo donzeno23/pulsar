@@ -6,7 +6,7 @@ from rich import print as rprint
 from pulsar.stages.base_stage import BaseStage
 from pulsar.stages.get_logs import GetLogsStage
 from pulsar.stages.send_messages import SendMessagesStage
-from pulsar.exceptions import PulsarStageDependencyError
+from pulsar.core.exceptions import PulsarStageDependencyError
 from pulsar.core.dependencies import Logger, Producer, Metrics
 
 class StageFactory:

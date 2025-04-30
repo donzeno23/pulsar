@@ -1,23 +1,31 @@
 # pulsar/stages/base_stage.py
 from typing import Any, Optional
-from abc import ABC
+from abc import ABC, abstractmethod
 from rich import print as rprint
 
-from pulsar.exceptions import PulsarStageDependencyError
-from pulsar.enums import StageMetadata
+from pulsar.core.exceptions import PulsarStageDependencyError
+from pulsar.core.models import StageMetadata, StageStatus, StageResult
+from pulsar.core.exceptions import PulsarStageExecutionFailureError
+from pulsar.core.command import StageCommand
 
 from testplan.common.entity.base import Runnable
+from testplan.testing.multitest.base import RuntimeEnvironment
 from testplan.testing.result import Result
 
 
-class BaseStage(ABC):
-    """Base class template for all Pulsar stages"""
+class BaseStage(StageCommand):
+    """Base class for all Pulsar Stages incorporating command pattern"""
     
-    name: str = "base_stage"  # Override this in child classes
-    optional: bool = False  # Override this in child classes if needed
-    dependencies: list[str] = []  # Override this in child classes if needed
-    metadata: dict[str, Any] = {}  # Override this in child classes if needed
-    _deps: dict[str, Any] = {}  # Class level storage for dependencies
+    name: str = "base_stage" # Override this in child class
+    optional: bool = False
+    dependencies: list[str] = []
+    metadata: dict[str, Any] = {}
+    _deps: dict[str, Any] = {}
+
+    def __init__(self):
+        # Pass the class-level name to the parent class
+        super().__init__(self.__class__.name)
+        self._deps: dict[str, Any] = {}
 
     @classmethod
     def set_dependencies(cls, **dependencies: Any) -> None:
@@ -87,7 +95,6 @@ class BaseStage(ABC):
         if cls.optional:
             all(dep in cls._deps for dep in cls.dependencies)
         return True
-        # return cls.optional or all(dep in cls._deps for dep in cls.dependencies)
 
     @classmethod
     def setup(cls, env: Optional[Runnable] = None, result: Optional[Result] = None):
@@ -96,40 +103,91 @@ class BaseStage(ABC):
             rprint(f"[bold yellow]Skipping setup for optional stage {cls.name} - dependencies not met[/bold yellow]")
             return
         
-        print(f"Setting up the {cls.name} stage.")
-        rprint(f"[bold green]{cls.name} stage initialized.[/bold green]")
+        print(f"****base-stage**** Setting up the {cls.name} stage.")
+        rprint(f"[bold green]****base-stage**** {cls.name} stage initialized.[/bold green]")
         if result:
-            result.log(f"Setting up the {cls.name} stage.")
-            result.log(f"{cls.name} stage initialized.")
+            result.log(f"****base-stage**** Setting up the {cls.name} stage.")
+            result.log(f"****base-stage**** {cls.name} stage initialized.")
 
-    @classmethod
-    def run(cls, params: Optional[dict] = None, env: Optional[Runnable] = None, 
-            result: Optional[Result] = None):
-        """
-        Run function to execute the stage.
-        
-        Args:
-            params: Parameters for the stage
-            env: Environment for the stage
-            result: Result object to store the results
-        """
-        if not cls.is_available():
-            rprint(f"[bold yellow]Skipping optional stage {cls.name} - dependencies not met[/bold yellow]")
+    def execute(self, context: dict[str, Any]) -> StageResult:
+        """Execute the stage with proper lifecycle"""
+        self.status = StageStatus.RUNNING
+
+        try:
+            env = context.get("env", None)
+            result = context.get("result", None)
+
+            self.setup(env, result)
+            # Run stage logic
+            run_result = self.run(context)
+            self.teardown(env, result)
+            self.status = StageStatus.COMPLETED
+
+            return StageResult(
+                self.name,
+                StageStatus.COMPLETED,
+                result=run_result
+            )
+        except PulsarStageExecutionFailureError as e:
+            self.status = StageStatus.FAILED
+            return StageResult(
+                self.name,
+                StageStatus.FAILED,
+                error=e
+            )
+
+    @abstractmethod
+    def run(self, context: dict[str, Any]) -> Any:
+        """ Implement stage-specific logic """
+        if not self.is_available():
+            rprint(f"[bold yellow]Skipping optional stage {self.name} - dependencies not met[/bold yellow]")
             return
         
-        print(f"Running the {cls.name} stage.")
-        rprint(f"[bold green] Using these parameters: '{params}' for the stage: '{cls.name}'.[/bold green]")
+        params = context.get("testcase_params", context) 
+        env = context.get("env", {})
+        result = context.get("result", None)
+        
+        print(f"Running the {self.name} stage.")
+        rprint(f"[bold green] Using these parameters: '{params}' for the stage: '{self.name}'.[/bold green]")
         
         if result:
-            result.log(f"Running the {cls.name} stage.")
-            result.log(f"Using these parameters: '{params}' for the stage: '{cls.name}'.")
+            result.log(f"Running the {self.name} stage.")
+            result.log(f"Using these parameters: '{params}' for the stage: '{self.name}'.")
 
-    @classmethod
-    def teardown(cls):
-        """Teardown function to clean up after the stage."""
-        if not cls.is_available():
-            rprint(f"[bold yellow]Skipping teardown for optional stage {cls.name} - dependencies not met[/bold yellow]")
-            return
-        
-        print(f"Tearing down the {cls.name} stage.")
-        rprint(f"[bold red]{cls.name} stage has been torn down![/bold red]")
+
+    def teardown(self, env: Optional[dict[str, Any]] = None, result: Optional[Any] = None) -> None:
+        """Tear down the stage and clean up resources"""
+
+        if not isinstance(result, Result):
+          
+            print(type(result))
+            raise PulsarStageExecutionFailureError(
+                stage_name=self.name,
+                error_message=f"Result object is not of type Result"
+            )
+        if not isinstance(env, RuntimeEnvironment): # Runnable):
+            print(type(env))
+            raise PulsarStageExecutionFailureError(
+                stage_name=self.name,
+                error_message=f"Environment object is not of type Runnable"
+            )
+
+        try:
+            # Perform stage-specific cleanup
+            self._cleanup(env, result)
+            
+            # Call parent teardown -- why??
+            super().teardown(env=env, result=result)
+            
+            if result:
+                result.log(f"Stage {self.name} torn down successfully")
+                
+        except Exception as e:
+            if result:
+                result.log(f"Error tearing down stage {self.name}: {str(e)}")
+            if not self.optional:
+                raise
+
+    def _cleanup(self, env: Optional[dict[str, Any]] = None, result: Optional[Any] = None) -> None:
+        """Override this method in subclasses to perform specific cleanup"""
+        pass
