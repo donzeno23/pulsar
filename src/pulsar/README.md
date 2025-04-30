@@ -2,57 +2,44 @@
 
 A high-performance testing and workflow automation toolkit built with Python, designed for creating modular, observable, and maintainable test workflows.
 
-### 🚀 Features
-- Modular stage-based architecture
+## 🚀 Features
 
-- Dependency injection and management
+ - Modular stage-based architecture
+ - Dependency injection and management
+ - Observable workflow execution
+ - Composable test workflows
+ - Rich logging and metrics
+ - Parameterized testing support
+ - Flexible configuration
 
-- Observable workflow execution
+## 📋 Table of Contents
 
-- Composable test workflows
+ - [Installation](#-installation)
+ - [Quick Start](#-quick-start)
+ - [Architecture](#-architecture)
+ - [Creating New Stages](#-creating-new-stages)
+ - [Writing Test Suites](#-writing-test-suites)
+ - [Managing Dependencies](#-managing-dependencies)
+ - [Best Practices](#-best-practices)
+ - [API Reference](#-api-reference)
 
-- Rich logging and metrics
+## 📋 Table of Contents
+ - Installation
+ - Quick Start
+ - Architecture
+ - Creating New Stages
+ - Writing Test Suites
+ - Managing Dependencies
+ - Best Practices
+ - API Reference
 
-- Parameterized testing support
+## 🔧 Installation
 
-- Flexible configuration
+### Prerequisites
+  - Python 3.10+
+  - uv package manager (recommended)
 
-### 📋 Table of Contents
-- [Installation](#-installation)
-- [Quick Start](#-quick-start)
-- [Architecture](#-architecture)
-- [Creating New Stages](#-creating-new-stages)
-- [Writing Test Suites](#-writing-test-suites)
-- [Managing Dependencies](#-managing-dependencies)
-- [Best Practices](#-best-practices)
-- [API Reference](#-api-reference)
-
-### 🔧 Installation
-
-### 📋 Table of Contents
-- Installation
-
-- Quick Start
-
-- Architecture
-
-- Creating New Stages
-
-- Writing Test Suites
-
-- Managing Dependencies
-
-- Best Practices
-
-- API Reference
-
-### 🔧 Installation
-##### Prerequisites
-- Python 3.10+
-
-- uv package manager (recommended)
-
-##### Setup Environment
+### Setup Environment
 
 ```bash
 # Install uv
@@ -69,7 +56,7 @@ source .venv/bin/activate
 uv pip install -e .
 ```
 
-### 🚀 Quick Start
+## 🚀 Quick Start
 
 ```python
 from pulsar.core.builder import WorkflowBuilder
@@ -93,20 +80,17 @@ result = workflow.execute(context={
 })
 ```
 
-### 🏗 Architecture
-Pulsar is built on several key design patterns:
+## 🏗 Architecture
 
-- Command Pattern : Each stage is a command object
+### Pulsar is built on several key design patterns:
 
-- Observer Pattern : Stages notify observers of state changes
+ - Command Pattern : Each stage is a command object
+ - Observer Pattern : Stages notify observers of state changes
+ - Composite Pattern : Workflows compose stages into DAGs
+ - Builder Pattern : Fluent API for workflow construction
+ - Dependency Injection : Clean dependency management
 
-- Composite Pattern : Workflows compose stages into DAGs
-
-- Builder Pattern : Fluent API for workflow construction
-
-- Dependency Injection : Clean dependency management
-
-### 📦 Creating New Stages
+## 📦 Creating New Stages
 1. Create a new file in pulsar/stages/:
 
 ```python
@@ -149,8 +133,9 @@ MyStage.set_dependencies(
 )
 ```
 
-### ✅ Writing Test Suites
-Create a new test suite:
+## ✅ Writing Test Suites
+
+### Create a new test suite:
 
 ```python
 # pulsar/tests/test_my_stage.py
@@ -201,7 +186,7 @@ class MyStageTestSuite:
         self.workflow.teardown(env=env, result=result)
 ```
 
-### 🔗 Managing Dependencies
+## 🔗 Managing Dependencies
 1. Define stage dependencies:
 
 ```python
@@ -235,57 +220,44 @@ def run(self, context):
     metrics = self.get_deps()["metrics"]
 ```
 
-### 💡 Best Practices
-1. Stage Design
+## 💡 Best Practices
+1. **Stage Design**
 
-- Keep stages focused and single-purpose
+   - Keep stages focused and single-purpose
+   - Use meaningful names and descriptions
+   - Document parameters and return values
+   - Handle errors gracefully
 
-- Use meaningful names and descriptions
+2. **Dependencies**
 
-- Document parameters and return values
+   - Minimize dependencies between stages
+   - Use dependency injection
+   - Document required dependencies
+   - Provide sensible defaults
 
-- Handle errors gracefully
+3. **Testing**
 
-2. Dependencies
+   - Write parameterized tests
+   - Test edge cases
+   - Use meaningful test data
+   - Clean up resources
 
-- Minimize dependencies between stages
+## 📚 API Reference
 
-- Use dependency injection
-
-- Document required dependencies
-
-- Provide sensible defaults
-
-3. Testing
-
-- Write parameterized tests
-
-- Test edge cases
-
-- Use meaningful test data
-
-- Clean up resources
-
-### 📚 API Reference
-##### Core Components
+### Core Components
 
 - `WorkflowBuilder`: Constructs workflow DAGs
-
 - `StageCommand`: Base command pattern implementation
-
 - `CompositeStage`: Manages stage composition
-
 - `StageObserver`: Monitors stage execution
 
-##### Stage Lifecycle
+### Stage Lifecycle
 
 1. `setup()`: Initialize resources
-
 2. `execute()`: Run stage logic
-
 3. `teardown()`: Clean up resources
 
-##### Context Dictionary
+### Context Dictionary
 
 ```python
 context = {
