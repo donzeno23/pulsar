@@ -1,20 +1,21 @@
-### ✅ How it works
+# ✅ How it works
 
 - Each Python file in `stages/` becomes a test stage.
 - Each stage can have `setup()`, `run()`, and `teardown()` methods.
 - `StageTest` iterates through stages and calls the defined functions in order.
 - `testplan` handles the reporting and structure.
 
-### ✅ Modifications to implement dependency handling:
+## ✅ Modifications to implement dependency handling:
 
-#### 🔁 Changes needed:
+### 🔁 Changes needed:
+
 1. Add an optional `DEPENDENCIES` variable in each stage module.
 2. Update the loader to read dependencies.
 3. Sort stages topologically before executing them in `StageTest`.
 
 ---
 
-### ✅ Updated Files:
+### ✅ Updated Files
 
 #### 🔹 `stages/stage_1.py` (example)
 
@@ -102,16 +103,18 @@ Once the stages are sorted in `loader.py`, `StageTest` will just run them in the
 
 ---
 
-### ✅ New Features:
+### ✅ New Features
+
 1. **Optional stages**
 2. **Parallel execution (where dependencies allow)**
 3. **Stage skipping on failure**
 
 ---
 
-### 🔁 Changes to make:
+### 🔁 Changes to make
 
-#### ✅ `stages/stage_x.py` now supports:
+#### ✅ `stages/stage_x.py` now supports
+
 ```python
 DEPENDENCIES = []
 OPTIONAL = True  # Optional stage that can be skipped
@@ -238,9 +241,86 @@ class StageTest(Test):
 ---
 
 ### 🚀 Recap: Now supports
+
 - ✅ Optional stages
 - ✅ Dependency-aware execution
 - ✅ Threaded (parallel where possible)
 - ✅ Skips stages if a required dependency fails
 
 ---
+
+### Running pulsar
+
+```text
+(pulsar) src$ python
+```
+
+```python
+>>> from pulsar import test_plan
+>>> test_plan.main()
+```
+
+### Build pulsar packages
+
+```text
+(pulsar) src $ uv pip install -e .
+Resolved 88 packages in 83ms
+      Built pulsar @ file:///Users/<user>/sandbox/pulsar/src
+Prepared 1 package in 508ms
+Uninstalled 1 package in 1ms
+Installed 1 package in 13ms
+ ~ pulsar==0.1.0 (from file:///Users/<user>/sandbox/pulsar/src)
+```
+
+### Run pulsar tests using tags
+
+```text
+# Runs entire TestSuite
+(pulsar) src $ pulsar --tags performance
+
+# Runs test with latency under TestSuite tagged as performance
+(pulsar) src $ pulsar --tags performance test_type=latency
+
+# Runs all latency testcases
+(pulsar) src $ pulsar --tags test_type=latency
+
+# Runs all latency and trading testcases
+(pulsar) src $ pulsar --tags test_type=latency app=trading
+```
+
+## Run Pulsar Commands
+
+### Usage pulsar-run
+
+```text
+(pulsar) src $ pulsar-run
+Usage: pulsar-run [OPTIONS] COMMAND [ARGS]...
+
+  (T)est(P)lan (S)uper (REPORT)
+
+  A Testplan tool for report manipulation.
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  execute  Execute a type of test for Pulsar toolkit.
+```
+
+### pulsar-run execute command
+
+```text
+(pulsar) Rachels-MacBook-Pro:src racheldaloia$ pulsar-run execute
+Usage: pulsar-run execute [OPTIONS] COMMAND1 [ARGS]... [COMMAND2 [ARGS]...]...
+
+  Execute a type of test for Pulsar toolkit.
+
+Options:
+  --help  Show this message and exit.
+```
+
+### pulsar-run execute checklatency
+
+```text
+(pulsar) src $ pulsar-run execute fromlatency checklatency latency.out
+```

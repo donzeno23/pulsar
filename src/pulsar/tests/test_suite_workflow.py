@@ -11,7 +11,10 @@ from pulsar.stages.get_logs import GetLogsStage
 from pulsar.stages.send_messages import SendMessagesStage
 from pulsar.utils.helpers import create_context
 
-@testsuite(name="Workflow Test Suite")
+@testsuite(
+    name="Workflow Test Suite",
+    tags=("performance")
+)
 class WorkflowTestSuite:
     """Test suite demonstrating workflow execution with proper lifecycle management"""
 
@@ -67,9 +70,12 @@ class WorkflowTestSuite:
             rprint(f"[bold red]{error_msg}[/bold red]")
             raise
 
-    @testcase(parameters=[
-        {"num_messages": 10, "log_type": "application", "limit": 100},
-        {"num_messages": 20, "log_type": "security", "limit": 200},
+    @testcase(
+        # tags="performance",
+        tags={"test_type": "latency", "app": "trading"},
+        parameters=[
+            {"num_messages": 10, "log_type": "application", "limit": 100},
+            {"num_messages": 20, "log_type": "security", "limit": 200},
     ])
     def test_workflow_execution(self, env: Dict[str, Any], result: Any, 
                               log_type: str, limit: int, num_messages: int) -> None:

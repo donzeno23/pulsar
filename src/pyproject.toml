@@ -17,4 +17,11 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/pulsar"]
+packages = ["pulsar"]
+
+
+[project.scripts]
+pulsar = "pulsar.test_plan:main"
+hello = "main:main"
+hello_cli = "pulsar.main_cli:main"
+pulsar-run = "pulsar.cli.run:cli"

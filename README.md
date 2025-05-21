@@ -1,4 +1,5 @@
-# pulsar
+# Pulsar
+
 ```text
 custom toolkit for benchmarking
 ```
@@ -6,7 +7,7 @@ custom toolkit for benchmarking
 ## install uv
 
 ```text
-mdaloia@Michaels-Mac-mini pulsar % curl -LsSf https://astral.sh/uv/install.sh | sh
+pulsar % curl -LsSf https://astral.sh/uv/install.sh | sh
 downloading uv 0.6.17 aarch64-apple-darwin
 no checksums to verify
 installing to /Users/mdaloia/.local/bin
@@ -18,8 +19,7 @@ To add $HOME/.local/bin to your PATH, either restart your shell or run:
 
     source $HOME/.local/bin/env (sh, bash, zsh)
     source $HOME/.local/bin/env.fish (fish)
-mdaloia@Michaels-Mac-mini pulsar % source $HOME/.local/bin/env
-
+pulsar % source $HOME/.local/bin/env
 ```
 
 ## check uv installation
@@ -77,10 +77,36 @@ Global options:
 Use `uv help` for more details.
 ```
 
-# install the pulsar package
+## Create virtual env and sync packages
 
 ```text
-(3.12.0) mdaloia@Michaels-Mac-mini src % uv run main.py 
+src $ uv sync
+Using CPython 3.12.10
+Creating virtual environment at: .venv
+Resolved 89 packages in 3.03s
+      Built pulsar @ file:///Users/<user>/sandbox/pulsar/src
+      Built validators==0.20.0
+      Built gherkin-official==4.1.3
+Prepared 88 packages in 16.48s
+Installed 88 packages in 2.17s
+...
+ + tzlocal==5.3.1
+ + urllib3==2.4.0
+ + validators==0.20.0
+ + werkzeug==3.1.3
+```
+
+## Activate the virtual env
+
+```text
+src $ source .venv/bin/activate
+(pulsar) $ 
+```
+
+## Install the pulsar package
+
+```text
+(3.12.0) src % uv run main.py 
 Using CPython 3.12.0 interpreter at: /Users/mdaloia/.pyenv/versions/3.12.0/bin/python3.12
 Creating virtual environment at: .venv
       Built pulsar @ file:///Users/mdaloia/Documents/GitHub/pulsar/src
@@ -97,7 +123,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> 
 ```
 
-# alternative method: install the package in development mode
+## Alternative method: install the package in development mode
 
 ```text
 (pulsar) (3.12.0) mdaloia@Michaels-Mac-mini src % pwd
@@ -112,7 +138,7 @@ Installed 1 package in 1ms
  ~ pulsar==0.1.0 (from file:///Users/mdaloia/Documents/GitHub/pulsar/src)
 ```
 
-# import the pulsar package
+## Import the pulsar package
 
 ```text
 (pulsar) (3.12.0) mdaloia@Michaels-Mac-mini src % python
@@ -125,7 +151,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> from pulsar import stages
 ```
 
-# run test_plan
+## Run test_plan
 
 ```text
 (pulsar) (3.12.0) mdaloia@Michaels-Mac-mini pulsar % cd src
@@ -142,4 +168,16 @@ Installed 1 package in 0.98ms
  + pulsar==0.1.0 (from file:///Users/mdaloia/Documents/GitHub/pulsar/src)
 
 (pulsar) (3.12.0) mdaloia@Michaels-Mac-mini src % python -m pulsar.test_plan 
+```
+
+## Build package
+
+```text
+(pulsar) src $ uv sync
+Resolved 89 packages in 30ms
+      Built pulsar @ file:///Users/<user>/sandbox/pulsar/src
+Prepared 1 package in 614ms
+Uninstalled 1 package in 11ms
+Installed 1 package in 4ms
+ ~ pulsar==0.1.0 (from file:///Users/<user>/sandbox/pulsar/src)
 ```

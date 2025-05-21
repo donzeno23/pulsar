@@ -4,40 +4,51 @@ A high-performance testing and workflow automation toolkit built with Python, de
 
 ## 🚀 Features
 
- - Modular stage-based architecture
- - Dependency injection and management
- - Observable workflow execution
- - Composable test workflows
- - Rich logging and metrics
- - Parameterized testing support
- - Flexible configuration
+- Modular stage-based architecture
+- Dependency injection and management
+- Observable workflow execution
+- Composable test workflows
+- Rich logging and metrics
+- Parameterized testing support
+- Flexible configuration
 
 ## 📋 Table of Contents
 
- - [Installation](#-installation)
- - [Quick Start](#-quick-start)
- - [Architecture](#-architecture)
- - [Creating New Stages](#-creating-new-stages)
- - [Writing Test Suites](#-writing-test-suites)
- - [Managing Dependencies](#-managing-dependencies)
- - [Best Practices](#-best-practices)
- - [API Reference](#-api-reference)
-
-## 📋 Table of Contents
- - Installation
- - Quick Start
- - Architecture
- - Creating New Stages
- - Writing Test Suites
- - Managing Dependencies
- - Best Practices
- - API Reference
+- [Pulsar Toolkit](#pulsar-toolkit)
+  - [🚀 Features](#-features)
+  - [📋 Table of Contents](#-table-of-contents)
+  - [🔧 Installation](#-installation)
+    - [Prerequisites](#prerequisites)
+    - [Setup Environment](#setup-environment)
+  - [🚀 Quick Start](#-quick-start)
+  - [🏗 Architecture](#-architecture)
+    - [Pulsar is built on several key design patterns](#pulsar-is-built-on-several-key-design-patterns)
+  - [📦 Creating New Stages](#-creating-new-stages)
+  - [Create a new file in pulsar/stages/](#create-a-new-file-in-pulsarstages)
+  - [Register stage dependencies](#register-stage-dependencies)
+  - [✅ Writing Test Suites](#-writing-test-suites)
+    - [Create a new test suite](#create-a-new-test-suite)
+  - [🔗 Managing Dependencies](#-managing-dependencies)
+  - [Define stage dependencies](#define-stage-dependencies)
+  - [Create dependency instances](#create-dependency-instances)
+  - [Set dependencies](#set-dependencies)
+  - [Access in stage](#access-in-stage)
+  - [💡 Best Practices](#-best-practices)
+  - [📚 API Reference](#-api-reference)
+    - [Core Components](#core-components)
+    - [Stage Lifecycle](#stage-lifecycle)
+    - [Context Dictionary](#context-dictionary)
+    - [🤝 Contributing](#-contributing)
+    - [📝 License](#-license)
+    - [👥 Authors](#-authors)
+    - [🙏 Acknowledgments](#-acknowledgments)
 
 ## 🔧 Installation
 
 ### Prerequisites
-  - Python 3.10+
-  - uv package manager (recommended)
+
+- Python 3.10+
+- uv package manager (recommended)
 
 ### Setup Environment
 
@@ -82,16 +93,17 @@ result = workflow.execute(context={
 
 ## 🏗 Architecture
 
-### Pulsar is built on several key design patterns:
+### Pulsar is built on several key design patterns
 
- - Command Pattern : Each stage is a command object
- - Observer Pattern : Stages notify observers of state changes
- - Composite Pattern : Workflows compose stages into DAGs
- - Builder Pattern : Fluent API for workflow construction
- - Dependency Injection : Clean dependency management
+- Command Pattern : Each stage is a command object
+- Observer Pattern : Stages notify observers of state changes
+- Composite Pattern : Workflows compose stages into DAGs
+- Builder Pattern : Fluent API for workflow construction
+- Dependency Injection : Clean dependency management
 
 ## 📦 Creating New Stages
-1. Create a new file in pulsar/stages/:
+
+## Create a new file in pulsar/stages/
 
 ```python
 # pulsar/stages/my_stage.py
@@ -122,7 +134,8 @@ class MyStage(BaseStage):
         
         return {"result": value}
 ```
-2. Register stage dependencies:
+
+## Register stage dependencies
 
 ```python
 from pulsar.core.dependencies import Logger, Metrics
@@ -135,7 +148,7 @@ MyStage.set_dependencies(
 
 ## ✅ Writing Test Suites
 
-### Create a new test suite:
+### Create a new test suite
 
 ```python
 # pulsar/tests/test_my_stage.py
@@ -187,14 +200,15 @@ class MyStageTestSuite:
 ```
 
 ## 🔗 Managing Dependencies
-1. Define stage dependencies:
+
+## Define stage dependencies
 
 ```python
 class MyStage(BaseStage):
     dependencies = ["logger", "metrics"]
 ```
 
-2. Create dependency instances:
+## Create dependency instances
 
 ```python
 from pulsar.core.dependencies import Logger, Metrics
@@ -203,7 +217,7 @@ logger = Logger()
 metrics = Metrics()
 ```
 
-3. Set dependencies:
+## Set dependencies
 
 ```python
 MyStage.set_dependencies(
@@ -212,7 +226,7 @@ MyStage.set_dependencies(
 )
 ```
 
-4. Access in stage:
+## Access in stage
 
 ```python
 def run(self, context):
@@ -221,6 +235,7 @@ def run(self, context):
 ```
 
 ## 💡 Best Practices
+
 1. **Stage Design**
 
    - Keep stages focused and single-purpose
@@ -280,12 +295,15 @@ context = {
 5. Create a Pull Request
 
 ### 📝 License
+
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ### 👥 Authors
+
 - Michael Daloia - Initial work - GitHub
 
 ### 🙏 Acknowledgments
+
 - List any inspirations
 
 - Credits to contributors
